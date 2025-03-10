@@ -1,32 +1,100 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/movie.dart';
+import 'package:dio/dio.dart';
 
 class MovieApi {
-  static final String apiKey =
-      dotenv.env['TMDB_API_KEY'] ?? ''; //"71babfa32fbfec96b843ae587e926dff";
-  static const String baseUrl = "https://api.themoviedb.org/3/movie/popular";
+  static final String apiKey = dotenv.env['TMDB_API_KEY'] ?? '';
+  static const String baseUrl = "https://api.themoviedb.org/3";
+  static final Dio dio = Dio(); // Persistent Connection
+  static Map<int, String> _genreMap = {};
+
+  //fetches movie genres dynamically from TMDB
+  static Future<void> fetchGenres() async {
+    final url = "$baseUrl/genre/movie/list?api_key=$apiKey";
+    print(url);
+    try {
+      final response = await dio.get(url);
+      print(response);
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        _genreMap = {
+          for (var genre in data['genres']) genre['id']: genre['name'],
+        };
+      } else {
+        throw HttpException(getErrorMessage(response.statusCode ?? 0));
+      }
+    } catch (e) {
+      print("Error fetching genres: $e");
+    }
+  }
+
+  static Map<int, String> getGenres() => _genreMap;
 
   // fetches movies dynamically from TMDB
   static Future<List<Movie>> getMovies() async {
-    final url = "$baseUrl?api_key=$apiKey";
+    final url = "$baseUrl/movie/popular?api_key=$apiKey";
+    print(url);
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await dio.get(url);
+      print(response);
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = response.data;
         List<Movie> movies =
             (data['results'] as List)
                 .map((json) => Movie.fromJson(json))
                 .toList();
+        print("success fetching movies");
+        print(movies.length);
         return movies;
       } else {
-        throw Exception(
-          "Failed to load movies. Status : ${response.statusCode}",
-        );
+        throw HttpException(getErrorMessage(response.statusCode ?? 0));
       }
     } catch (e) {
       print("Error fetching movies: $e");
+      return [];
+    }
+  }
+
+  static String getErrorMessage(int statusCode) {
+    switch (statusCode) {
+      case 400:
+        return "Bad request - The request was unacceptable.";
+      case 401:
+        return "Unauthorized - Please check your API key.";
+      case 403:
+        return "Forbidden - You do not have permission.";
+      case 404:
+        return "Not Found - The requested resource was not found.";
+      case 500:
+        return "Internal Server Error - Try again later.";
+      case 503:
+        return "Service Unavailable - TMDb servers might be down.";
+      default:
+        return "Unexpected error occurred. Please try again later.";
+    }
+  }
+
+  static Future<List<String>> fetchMovieTrailers(int movieId) async {
+    final url = "$baseUrl/movie/$movieId/videos?api_key=$apiKey";
+    final response = await dio.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonData = response.data;
+      final videos = jsonData["results"] as List;
+
+      // Extract only Youtube trailers
+      return videos
+          .where(
+            (video) => video["site"] == "YouTube" && video["type"] == "Trailer",
+          )
+          .map<String>((video) => video["key"]) // Extract Youtube video Id
+          .toList();
+    } else {
       return [];
     }
   }

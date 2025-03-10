@@ -5,6 +5,7 @@ import '../viewmodels/movie_list_viewmodel.dart';
 import '../viewmodels/favorite_viewmodel.dart';
 import '../views/movie_detail_screen.dart';
 import '../widgets/movie_card.dart';
+import '../models/movie.dart';
 
 class MovieListScreen extends StatefulWidget {
   @override
@@ -12,10 +13,26 @@ class MovieListScreen extends StatefulWidget {
 }
 
 class _MovieListScreenState extends State<MovieListScreen> {
+  TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+  bool _showFavorites = false;
+  bool _isSearching = false;
+
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text;
+      });
+    });
     Provider.of<MovieListViewModel>(context, listen: false).fetchMovies();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -23,36 +40,90 @@ class _MovieListScreenState extends State<MovieListScreen> {
     final movieListVM = Provider.of<MovieListViewModel>(context);
     final favoriteVM = Provider.of<FavoriteViewModel>(context);
 
-    final movies =
-        movieListVM.isOffline
+    final bool isOffline = movieListVM.isOffline;
+
+    if (movieListVM.isLoading) {
+      return Center(child: CircularProgressIndicator(color: Colors.white));
+    }
+
+    final List<Movie> movies =
+        _showFavorites
             ? movieListVM.movies
-                .where((movie) => favoriteVM.isFavorite(movie.id))
+                .where((movie) => favoriteVM.favoriteMovies.contains(movie.id))
+                .where(
+                  (movie) => movie.title.toLowerCase().contains(
+                    _searchQuery.toLowerCase(),
+                  ),
+                )
                 .toList()
-            : favoriteVM.showFavoritesOnly
-            ? movieListVM.movies
-                .where((movie) => favoriteVM.isFavorite(movie.id))
-                .toList()
-            : movieListVM.movies;
+            : movieListVM.movies.where((movie) {
+              return movie.title.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              );
+            }).toList();
+
+    print("Movie List Screen Loaded");
+    print("isOffline: ${movieListVM.isOffline}");
+    print("Total Movies: ${movieListVM.movies.length}");
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text("Movies"),
+        title:
+            _isSearching
+                ? TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: "Search Movies...",
+                    hintStyle: TextStyle(color: Colors.white70),
+                    border: InputBorder.none,
+                  ),
+                  style: TextStyle(color: Colors.white),
+                )
+                : Text("Movies", style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.black,
+        elevation: 0,
         actions: [
           IconButton(
-            onPressed: favoriteVM.toggleShowFavorites,
-            icon: Icon(
-              favoriteVM.showFavoritesOnly ? Icons.list : Icons.favorite,
-            ),
+            onPressed: () {
+              setState(() {
+                if (_isSearching) {
+                  _searchController.clear();
+                  _searchQuery = "";
+                }
+                _isSearching = !_isSearching;
+              });
+            },
+            icon: Icon(_isSearching ? Icons.close : Icons.search),
+          ),
+
+          IconButton(
+            onPressed: () {
+              setState(() {
+                _showFavorites = !_showFavorites;
+              });
+            },
+            icon: Icon(_showFavorites ? Icons.list : Icons.favorite),
           ),
         ],
       ),
       body:
-          movieListVM.isOffline
+          movies.isEmpty
               ? Center(
+                // child: Text(
+                //   _showFavorites ? "No favorite movies" : "No movies found",
+                //   style: TextStyle(color: Colors.white70),
+                // ),
+                // Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("No Internet. Showing favorite movies."),
+                    Text(
+                      isOffline && !_showFavorites
+                          ? "No Internet. No favorite movies."
+                          : "No movies found",
+                      style: TextStyle(color: Colors.white70),
+                    ),
                     SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: movieListVM.fetchMovies,
@@ -61,8 +132,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
                   ],
                 ),
               )
-              : movies.isEmpty
-              ? Center(child: Text("No movies found"))
               : GridView.builder(
                 padding: EdgeInsets.all(8),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -71,7 +140,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                   mainAxisSpacing: 10,
                   childAspectRatio: 0.7,
                 ),
-                itemCount: movieListVM.movies.length,
+                itemCount: movies.length,
                 itemBuilder: (ctx, index) {
                   return MovieCard(movie: movies[index]);
                 },
