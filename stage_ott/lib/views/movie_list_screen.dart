@@ -42,16 +42,9 @@ class _MovieListScreenState extends State<MovieListScreen> {
 
     final bool isOffline = movieListVM.isOffline;
 
-    // final movies =
-    //     movieListVM.isOffline
-    //         ? movieListVM.movies
-    //             .where((movie) => favoriteVM.isFavorite(movie.id))
-    //             .toList()
-    //         : favoriteVM.showFavoritesOnly
-    //         ? movieListVM.movies
-    //             .where((movie) => favoriteVM.isFavorite(movie.id))
-    //             .toList()
-    //         : movieListVM.movies;
+    if (movieListVM.isLoading) {
+      return Center(child: CircularProgressIndicator(color: Colors.white));
+    }
 
     final List<Movie> movies =
         _showFavorites

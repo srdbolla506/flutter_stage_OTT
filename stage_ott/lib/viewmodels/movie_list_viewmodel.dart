@@ -6,7 +6,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 class MovieListViewModel extends ChangeNotifier {
   List<Movie> _movies = [];
+  bool _isLoading = false;
+  String? errorMessage;
+
   List<Movie> get movies => _movies;
+  bool get isLoading => _isLoading;
+
   bool _isOffline = false;
   bool get isOffline => _isOffline;
   bool _isFetched = false;
@@ -44,6 +49,11 @@ class MovieListViewModel extends ChangeNotifier {
 
   Future<void> fetchMovies() async {
     print("Connectivity Status: $_isOffline");
+
+    if (_movies.isNotEmpty) return;
+    _isLoading = true;
+    notifyListeners();
+
     await MovieApi.fetchGenres();
     // if (_isFetched || _movies.isNotEmpty) {
     //   loadfromCache();
@@ -74,7 +84,7 @@ class MovieListViewModel extends ChangeNotifier {
     }
 
     // _isFetched = false;
-
+    _isLoading = false;
     notifyListeners();
   }
 
