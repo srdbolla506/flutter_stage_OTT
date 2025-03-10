@@ -45,7 +45,7 @@ class MovieApi {
         final data = response.data;
         List<Movie> movies =
             (data['results'] as List)
-                .map((json) => Movie.fromJson(json, _genreMap))
+                .map((json) => Movie.fromJson(json))
                 .toList();
         print("success fetching movies");
         print(movies.length);
@@ -57,6 +57,26 @@ class MovieApi {
       }
     } catch (e) {
       print("Error fetching movies: $e");
+      return [];
+    }
+  }
+
+  static Future<List<String>> fetchMovieTrailers(int movieId) async {
+    final url = "$baseUrl/movie/$movieId/videos?api_key=$apiKey";
+    final response = await dio.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonData = response.data;
+      final videos = jsonData["results"] as List;
+
+      // Extract only Youtube trailers
+      return videos
+          .where(
+            (video) => video["site"] == "YouTube" && video["type"] == "Trailer",
+          )
+          .map<String>((video) => video["key"]) // Extract Youtube video Id
+          .toList();
+    } else {
       return [];
     }
   }

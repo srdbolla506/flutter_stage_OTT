@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../models/movie.dart';
 import '../viewmodels/favorite_viewmodel.dart';
 import '../views/movie_detail_screen.dart';
+import '../viewmodels/movie_detail_viewmodel.dart';
 
 class MovieCard extends StatelessWidget {
   final Movie movie;
@@ -18,7 +19,15 @@ class MovieCard extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (ctx) => MovieDetailScreen(movie: movie)),
+          MaterialPageRoute(
+            builder:
+                (ctx) => ChangeNotifierProvider(
+                  create:
+                      (_) =>
+                          MovieDetailViewModel(movie: movie, isFavorite: isFav),
+                  child: MovieDetailScreen(movie: movie),
+                ),
+          ),
         );
       },
       child: Card(

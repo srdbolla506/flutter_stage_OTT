@@ -7,6 +7,8 @@ class Movie {
   final String bannerUrl;
   final String synopsis;
   final String genres;
+  final String releaseDate;
+  final double voteAverage;
   bool isFavorite;
 
   Movie({
@@ -16,10 +18,12 @@ class Movie {
     required this.bannerUrl,
     required this.synopsis,
     required this.genres,
+    required this.releaseDate,
+    required this.voteAverage,
     this.isFavorite = false,
   });
 
-  factory Movie.fromJson(Map<String, dynamic> json, Map<int, String> genreMap) {
+  factory Movie.fromJson(Map<String, dynamic> json) {
     final genreIds = List<int>.from(json['genre_ids'] ?? []);
 
     String genreNames = genreIds
@@ -39,6 +43,8 @@ class Movie {
               : "https://via.placeholder.com/500", // Fallback banner
       synopsis: json['overview'] ?? "No synopsis available",
       genres: genreNames,
+      releaseDate: json['release_date'] ?? "Unknown",
+      voteAverage: (json['vote_average'] ?? 0).toDouble(),
     );
   }
 
@@ -51,6 +57,8 @@ class Movie {
       'bannerurl': bannerUrl,
       'synopsis': synopsis,
       'genres': genres,
+      'releaseDate': releaseDate,
+      'voteAverage': voteAverage,
       'isFavorite': isFavorite ? 1 : 0,
     };
   }
@@ -64,6 +72,8 @@ class Movie {
       bannerUrl: map['bannerUrl'],
       synopsis: map['synopsis'],
       genres: map['genres'],
+      releaseDate: map['releaseDate'],
+      voteAverage: (map['voteAverage'] as num).toDouble(),
       isFavorite: map['isFavorite'],
     );
   }
