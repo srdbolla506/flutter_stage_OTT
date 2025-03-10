@@ -29,7 +29,8 @@ class DatabaseHelper {
         title TEXT,
         imageUrl TEXT,
         bannerUrl TEXT,
-        synopsis TEXT
+        synopsis TEXT,
+        genres TEXT
       )
     ''');
 

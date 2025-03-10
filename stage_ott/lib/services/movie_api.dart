@@ -2,23 +2,53 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/movie.dart';
+import 'package:dio/dio.dart';
 
 class MovieApi {
-  static final String apiKey =
-      dotenv.env['TMDB_API_KEY'] ?? ''; //"71babfa32fbfec96b843ae587e926dff";
-  static const String baseUrl = "https://api.themoviedb.org/3/movie/popular";
+  static final String apiKey = dotenv.env['TMDB_API_KEY'] ?? '';
+  static const String baseUrl = "https://api.themoviedb.org/3";
+  static final Dio dio = Dio(); // Persistent Connection
+  static Map<int, String> _genreMap = {};
+
+  //fetches movie genres dynamically from TMDB
+  static Future<void> fetchGenres() async {
+    final url = "$baseUrl/genre/movie/list?api_key=$apiKey";
+    print(url);
+    try {
+      final response = await dio.get(url);
+      print(response);
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+
+        _genreMap = {
+          for (var genre in data['genres']) genre['id']: genre['name'],
+        };
+      } else {
+        throw Exception("Failed to load genres: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching genres: $e");
+    }
+  }
+
+  static Map<int, String> getGenres() => _genreMap;
 
   // fetches movies dynamically from TMDB
   static Future<List<Movie>> getMovies() async {
-    final url = "$baseUrl?api_key=$apiKey";
+    final url = "$baseUrl/movie/popular?api_key=$apiKey";
+    print(url);
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await dio.get(url);
+      print(response);
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = response.data;
         List<Movie> movies =
             (data['results'] as List)
-                .map((json) => Movie.fromJson(json))
+                .map((json) => Movie.fromJson(json, _genreMap))
                 .toList();
+        print("success fetching movies");
+        print(movies.length);
         return movies;
       } else {
         throw Exception(

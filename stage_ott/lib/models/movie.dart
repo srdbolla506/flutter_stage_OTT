@@ -1,9 +1,13 @@
+import 'package:stage_ott/services/movie_api.dart';
+
 class Movie {
   final int id;
   final String title;
   final String imageUrl;
   final String bannerUrl;
   final String synopsis;
+  final String genres;
+  bool isFavorite;
 
   Movie({
     required this.id,
@@ -11,12 +15,20 @@ class Movie {
     required this.imageUrl,
     required this.bannerUrl,
     required this.synopsis,
+    required this.genres,
+    this.isFavorite = false,
   });
 
-  factory Movie.fromJson(Map<String, dynamic> json) {
+  factory Movie.fromJson(Map<String, dynamic> json, Map<int, String> genreMap) {
+    final genreIds = List<int>.from(json['genre_ids'] ?? []);
+
+    String genreNames = genreIds
+        .map((id) => MovieApi.getGenres()[id] ?? "Unknown") // Map Ids to names
+        .join(", ");
+
     return Movie(
       id: json['id'],
-      title: json['title'] ?? "No title",
+      title: json['title'] ?? "Unknown title",
       imageUrl:
           json['poster_path'] != null
               ? "https://image.tmdb.org/t/p/w500${json['poster_path']}"
@@ -26,6 +38,7 @@ class Movie {
               ? "https://image.tmdb.org/t/p/w500${json['backdrop_path']}"
               : "https://via.placeholder.com/500", // Fallback banner
       synopsis: json['overview'] ?? "No synopsis available",
+      genres: genreNames,
     );
   }
 
@@ -37,6 +50,8 @@ class Movie {
       'imageUrl': imageUrl,
       'bannerurl': bannerUrl,
       'synopsis': synopsis,
+      'genres': genres,
+      'isFavorite': isFavorite ? 1 : 0,
     };
   }
 
@@ -48,6 +63,8 @@ class Movie {
       imageUrl: map['imageUrl'],
       bannerUrl: map['bannerUrl'],
       synopsis: map['synopsis'],
+      genres: map['genres'],
+      isFavorite: map['isFavorite'],
     );
   }
 }

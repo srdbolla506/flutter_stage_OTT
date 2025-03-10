@@ -12,6 +12,7 @@ class MovieCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final favoriteVM = Provider.of<FavoriteViewModel>(context, listen: false);
+    bool isFav = favoriteVM.isFavorite(movie.id);
 
     return GestureDetector(
       onTap: () {
@@ -24,44 +25,61 @@ class MovieCard extends StatelessWidget {
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CachedNetworkImage(
-              imageUrl: movie.imageUrl,
-              height: 150,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              placeholder:
-                  (context, url) => Center(child: CircularProgressIndicator()),
-              errorWidget:
-                  (context, url, error) => Icon(Icons.error, color: Colors.red),
+            // Movie Poster
+            Expanded(
+              child: CachedNetworkImage(
+                imageUrl: movie.imageUrl,
+                height: 180,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder:
+                    (context, url) =>
+                        Center(child: CircularProgressIndicator()),
+                errorWidget:
+                    (context, url, error) =>
+                        Icon(Icons.error, color: Colors.red),
+              ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
+
+            Container(
+              color: isFav ? Colors.red[300] : Colors.amber[200],
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    movie.title,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Consumer<FavoriteViewModel>(
-                    builder: (context, favoriteVM, _) {
-                      return IconButton(
-                        icon: Icon(
-                          favoriteVM.isFavorite(movie.id)
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-
-                          color:
-                              favoriteVM.isFavorite(movie.id)
-                                  ? Colors.red
-                                  : null,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          movie.title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                          maxLines: 1,
+                          // softWrap: true,
+                          overflow: TextOverflow.ellipsis,
                         ),
-
-                        onPressed: () {
-                          favoriteVM.toggleFavorite(movie.id);
-                        },
-                      );
+                        Text(
+                          movie.genres,
+                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                          maxLines: 1,
+                          // softWrap: true,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      isFav ? Icons.favorite : Icons.favorite_border,
+                      color: isFav ? Colors.red[800] : Colors.black54,
+                    ),
+                    onPressed: () {
+                      favoriteVM.toggleFavorite(movie.id);
                     },
                   ),
                 ],

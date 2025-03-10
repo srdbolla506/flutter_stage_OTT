@@ -34,6 +34,10 @@ class _MovieListScreenState extends State<MovieListScreen> {
                 .toList()
             : movieListVM.movies;
 
+    print("🚀 Movie List Screen Loaded");
+    print("➡️ isOffline: ${movieListVM.isOffline}");
+    print("➡️ Total Movies: ${movieListVM.movies.length}");
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Movies"),
@@ -61,7 +65,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                   ],
                 ),
               )
-              : movies.isEmpty
+              : movieListVM.movies.isEmpty
               ? Center(child: Text("No movies found"))
               : GridView.builder(
                 padding: EdgeInsets.all(8),
@@ -73,7 +77,7 @@ class _MovieListScreenState extends State<MovieListScreen> {
                 ),
                 itemCount: movieListVM.movies.length,
                 itemBuilder: (ctx, index) {
-                  return MovieCard(movie: movies[index]);
+                  return MovieCard(movie: movieListVM.movies[index]);
                 },
               ),
     );
