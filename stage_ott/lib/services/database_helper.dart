@@ -49,27 +49,39 @@ class DatabaseHelper {
     final db = await database;
     final batch = db.batch();
 
-    for (var movie in movies) {
-      batch.insert(
-        'movies',
-        movie.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+    try {
+      for (var movie in movies) {
+        batch.insert(
+          'movies',
+          movie.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+      await batch.commit(noResult: true); // Executes all inserts in one go
+    } catch (e) {
+      print("Error inserting movies: $e");
     }
-
-    await batch.commit(noResult: true); // Executes all inserts in one go
   }
 
   // Retrieve all movies from Sqlite
   Future<List<Movie>> getMovies() async {
     final db = await database;
-    final result = await db.query('movies');
-    return result.map((json) => Movie.fromMap(json)).toList();
+    try {
+      final result = await db.query('movies');
+      return result.map((json) => Movie.fromMap(json)).toList();
+    } catch (e) {
+      print("Error fetching movies from database: $e");
+      return [];
+    }
   }
 
   Future<void> clearMovies() async {
     final db = await database;
-    await db.delete('movies');
+    try {
+      await db.delete('movies');
+    } catch (e) {
+      print("Error clearing movies: $e");
+    }
   }
 
   // favourites storage
@@ -86,12 +98,21 @@ class DatabaseHelper {
 
   Future<void> removeFavorite(int movieId) async {
     final db = await database;
-    await db.delete('favorites', where: 'id = ?', whereArgs: [movieId]);
+    try {
+      await db.delete('favorites', where: 'id = ?', whereArgs: [movieId]);
+    } catch (e) {
+      print("Error removing favorite: $e");
+    }
   }
 
   Future<List<int>> getFavoriteMovieIds() async {
     final db = await database;
-    final result = await db.query('favorites');
-    return result.map((row) => row['id'] as int).toList();
+    try {
+      final result = await db.query('favorites');
+      return result.map((row) => row['id'] as int).toList();
+    } catch (e) {
+      print("Error fetching favorite movie Ids: $e");
+      return [];
+    }
   }
 }

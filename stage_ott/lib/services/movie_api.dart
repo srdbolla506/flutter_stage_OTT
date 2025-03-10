@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/movie.dart';
@@ -25,7 +26,7 @@ class MovieApi {
           for (var genre in data['genres']) genre['id']: genre['name'],
         };
       } else {
-        throw Exception("Failed to load genres: ${response.statusCode}");
+        throw HttpException(getErrorMessage(response.statusCode ?? 0));
       }
     } catch (e) {
       print("Error fetching genres: $e");
@@ -51,13 +52,30 @@ class MovieApi {
         print(movies.length);
         return movies;
       } else {
-        throw Exception(
-          "Failed to load movies. Status : ${response.statusCode}",
-        );
+        throw HttpException(getErrorMessage(response.statusCode ?? 0));
       }
     } catch (e) {
       print("Error fetching movies: $e");
       return [];
+    }
+  }
+
+  static String getErrorMessage(int statusCode) {
+    switch (statusCode) {
+      case 400:
+        return "Bad request - The request was unacceptable.";
+      case 401:
+        return "Unauthorized - Please check your API key.";
+      case 403:
+        return "Forbidden - You do not have permission.";
+      case 404:
+        return "Not Found - The requested resource was not found.";
+      case 500:
+        return "Internal Server Error - Try again later.";
+      case 503:
+        return "Service Unavailable - TMDb servers might be down.";
+      default:
+        return "Unexpected error occurred. Please try again later.";
     }
   }
 

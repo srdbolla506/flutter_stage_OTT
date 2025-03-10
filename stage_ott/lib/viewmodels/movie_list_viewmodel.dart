@@ -8,11 +8,15 @@ class MovieListViewModel extends ChangeNotifier {
   List<Movie> _movies = [];
 
   bool _isLoading = false;
+  String? _errorMessage;
+
   List<Movie> get movies => _movies;
   bool get isLoading => _isLoading;
 
   bool _isOffline = false;
   bool get isOffline => _isOffline;
+
+  String? get errorMessage => _errorMessage;
 
   // bool _isFetched = false;
 
@@ -26,15 +30,20 @@ class MovieListViewModel extends ChangeNotifier {
   }
 
   Future<void> _checkConnectivity() async {
-    var connectivityResult = await Connectivity().checkConnectivity();
-    _isOffline = (connectivityResult == ConnectivityResult.none);
-    notifyListeners();
-    print("Connectivity Status: $_isOffline");
+    try {
+      var connectivityResult = await Connectivity().checkConnectivity();
+      _isOffline = (connectivityResult == ConnectivityResult.none);
+      notifyListeners();
+      print("Connectivity Status: $_isOffline");
 
-    if (!_isOffline) {
-      fetchMovies();
-    } else {
-      loadfromCache(); // load from Cache - sqlite for offline
+      if (!_isOffline) {
+        fetchMovies();
+      } else {
+        loadfromCache(); // load from Cache - sqlite for offline
+      }
+    } catch (e) {
+      _errorMessage = "Failed to check internet connection.";
+      notifyListeners();
     }
 
     Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
@@ -45,11 +54,12 @@ class MovieListViewModel extends ChangeNotifier {
   }
 
   Future<void> loadfromCache() async {
-    _movies = await DatabaseHelper.instance.getMovies();
-    // if (_movies.isNotEmpty) {
-    //   _isOffline = false;
-    // }
-    _checkIfOffline();
+    try {
+      _movies = await DatabaseHelper.instance.getMovies();
+      _errorMessage = null;
+    } catch (e) {
+      _errorMessage = "Failed to load cached movies.";
+    }
     notifyListeners();
   }
 
@@ -58,6 +68,7 @@ class MovieListViewModel extends ChangeNotifier {
 
     await _checkIfOffline();
 
+    // If offline or not connected to internte, load cached data from sqlite
     if (isOffline) {
       await loadfromCache();
       return;
@@ -66,21 +77,10 @@ class MovieListViewModel extends ChangeNotifier {
     if (_movies.isNotEmpty) return;
 
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
-    // if (_isFetched || _movies.isNotEmpty) {
-    //   loadfromCache();
-    //   return;
-    // }
-    // if (_isOffline) return; // skip API calls when offline
-
-    // // Load from SQlite first to make UI faster
-    // _movies = await DatabaseHelper.instance.getMovies();
-    // notifyListeners();
-
     //Now fetch from API and update UI
-    // _isFetched = true;
-
     try {
       await MovieApi.fetchGenres();
       List<Movie> apiMovies = await MovieApi.getMovies();
@@ -89,21 +89,15 @@ class MovieListViewModel extends ChangeNotifier {
         await DatabaseHelper.instance.clearMovies(); // clear old data
         await DatabaseHelper.instance.insertMovies(_movies);
       } else {
-        await loadfromCache();
+        _errorMessage = "No movies found.";
       }
     } catch (e) {
+      _errorMessage = "Error fetching movies. Showing cached data.";
+      print(_errorMessage);
       await loadfromCache();
     }
 
-    // _isFetched = false;
     _isLoading = false;
     notifyListeners();
   }
-
-  // void retryFetch() async {
-  //   var connectivityResult = await Connectivity().checkConnectivity();
-  //   if (connectivityResult != ConnectivityResult.none) {
-  //     await fetchMovies();
-  //   }
-  // }
 }
