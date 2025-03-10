@@ -31,6 +31,7 @@ class MovieCard extends StatelessWidget {
         );
       },
       child: Card(
+        color: Colors.white.withOpacity(0.1),
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         child: Column(
@@ -53,7 +54,7 @@ class MovieCard extends StatelessWidget {
             ),
 
             Container(
-              color: isFav ? Colors.red[300] : Colors.amber[200],
+              color: isFav ? Colors.red[300] : Colors.amber[500],
               padding: const EdgeInsets.all(8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -39,8 +39,11 @@ class _MovieListScreenState extends State<MovieListScreen> {
     print("➡️ Total Movies: ${movieListVM.movies.length}");
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text("Movies"),
+        title: Text("Movies", style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.black,
+        elevation: 0,
         actions: [
           IconButton(
             onPressed: favoriteVM.toggleShowFavorites,
@@ -56,7 +59,10 @@ class _MovieListScreenState extends State<MovieListScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("No Internet. Showing favorite movies."),
+                    Text(
+                      "No Internet. Showing favorite movies.",
+                      style: TextStyle(color: Colors.white70),
+                    ),
                     SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: movieListVM.fetchMovies,
@@ -66,7 +72,12 @@ class _MovieListScreenState extends State<MovieListScreen> {
                 ),
               )
               : movieListVM.movies.isEmpty
-              ? Center(child: Text("No movies found"))
+              ? Center(
+                child: Text(
+                  "No movies found",
+                  style: TextStyle(color: Colors.white70),
+                ),
+              )
               : GridView.builder(
                 padding: EdgeInsets.all(8),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
