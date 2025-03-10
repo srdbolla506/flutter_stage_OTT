@@ -108,13 +108,20 @@ class _MovieListScreenState extends State<MovieListScreen> {
         ],
       ),
       body:
-          isOffline && !_showFavorites
+          movies.isEmpty
               ? Center(
+                // child: Text(
+                //   _showFavorites ? "No favorite movies" : "No movies found",
+                //   style: TextStyle(color: Colors.white70),
+                // ),
+                // Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "No Internet. Showing favorite movies.",
+                      isOffline && !_showFavorites
+                          ? "No Internet. No favorite movies."
+                          : "No movies found",
                       style: TextStyle(color: Colors.white70),
                     ),
                     SizedBox(height: 10),
@@ -123,13 +130,6 @@ class _MovieListScreenState extends State<MovieListScreen> {
                       child: Text("Retry"),
                     ),
                   ],
-                ),
-              )
-              : movies.isEmpty
-              ? Center(
-                child: Text(
-                  _showFavorites ? "No favorite movies" : "No movies found",
-                  style: TextStyle(color: Colors.white70),
                 ),
               )
               : GridView.builder(

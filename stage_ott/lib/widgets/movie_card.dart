@@ -90,6 +90,7 @@ class MovieCard extends StatelessWidget {
                     ),
                     onPressed: () {
                       favoriteVM.toggleFavorite(movie.id);
+                      movie.isFavorite = favoriteVM.isFavorite(movie.id);
                     },
                   ),
                 ],

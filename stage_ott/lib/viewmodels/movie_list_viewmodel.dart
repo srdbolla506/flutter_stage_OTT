@@ -6,18 +6,23 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 class MovieListViewModel extends ChangeNotifier {
   List<Movie> _movies = [];
-  bool _isLoading = false;
-  String? errorMessage;
 
+  bool _isLoading = false;
   List<Movie> get movies => _movies;
   bool get isLoading => _isLoading;
 
   bool _isOffline = false;
   bool get isOffline => _isOffline;
-  bool _isFetched = false;
+
+  // bool _isFetched = false;
 
   MovieListViewModel() {
     _checkConnectivity();
+  }
+
+  Future<void> _checkIfOffline() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    _isOffline = (connectivityResult == ConnectivityResult.none);
   }
 
   Future<void> _checkConnectivity() async {
@@ -41,20 +46,28 @@ class MovieListViewModel extends ChangeNotifier {
 
   Future<void> loadfromCache() async {
     _movies = await DatabaseHelper.instance.getMovies();
-    if (_movies.isNotEmpty) {
-      _isOffline = false;
-    }
+    // if (_movies.isNotEmpty) {
+    //   _isOffline = false;
+    // }
+    _checkIfOffline();
     notifyListeners();
   }
 
   Future<void> fetchMovies() async {
     print("Connectivity Status: $_isOffline");
 
+    await _checkIfOffline();
+
+    if (isOffline) {
+      await loadfromCache();
+      return;
+    }
+
     if (_movies.isNotEmpty) return;
+
     _isLoading = true;
     notifyListeners();
 
-    await MovieApi.fetchGenres();
     // if (_isFetched || _movies.isNotEmpty) {
     //   loadfromCache();
     //   return;
@@ -69,18 +82,17 @@ class MovieListViewModel extends ChangeNotifier {
     // _isFetched = true;
 
     try {
+      await MovieApi.fetchGenres();
       List<Movie> apiMovies = await MovieApi.getMovies();
       if (apiMovies.isNotEmpty) {
-        _isOffline = false;
         _movies = apiMovies;
         await DatabaseHelper.instance.clearMovies(); // clear old data
         await DatabaseHelper.instance.insertMovies(_movies);
+      } else {
+        await loadfromCache();
       }
     } catch (e) {
-      if (_movies.isEmpty) {
-        _isOffline = true;
-        loadfromCache();
-      }
+      await loadfromCache();
     }
 
     // _isFetched = false;

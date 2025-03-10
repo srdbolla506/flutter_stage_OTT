@@ -54,7 +54,7 @@ class Movie {
       'id': id,
       'title': title,
       'imageUrl': imageUrl,
-      'bannerurl': bannerUrl,
+      'bannerUrl': bannerUrl,
       'synopsis': synopsis,
       'genres': genres,
       'releaseDate': releaseDate,
@@ -74,7 +74,7 @@ class Movie {
       genres: map['genres'],
       releaseDate: map['releaseDate'],
       voteAverage: (map['voteAverage'] as num).toDouble(),
-      isFavorite: map['isFavorite'],
+      isFavorite: (map['isFavorite'] == 1),
     );
   }
 }

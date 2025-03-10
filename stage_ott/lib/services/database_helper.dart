@@ -30,7 +30,10 @@ class DatabaseHelper {
         imageUrl TEXT,
         bannerUrl TEXT,
         synopsis TEXT,
-        genres TEXT
+        genres TEXT,
+        releaseDate TEXT,
+        voteAverage REAL,
+        isFavorite INTEGER DEFAULT 0
       )
     ''');
 
