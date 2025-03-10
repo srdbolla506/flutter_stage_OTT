@@ -43,6 +43,7 @@ class MovieListViewModel extends ChangeNotifier {
       }
     } catch (e) {
       _errorMessage = "Failed to check internet connection.";
+      print(_errorMessage);
       notifyListeners();
     }
 
@@ -59,6 +60,7 @@ class MovieListViewModel extends ChangeNotifier {
       _errorMessage = null;
     } catch (e) {
       _errorMessage = "Failed to load cached movies.";
+      print(_errorMessage);
     }
     notifyListeners();
   }
