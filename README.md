@@ -1,5 +1,7 @@
 # flutter_stage_OTT
 
+This app has been built from scratch with flutter using TMDB api data and works for both iOS and Android.
+
 The following are the implementation details of the flutter app. The main changes are in /lib folder
 
 1) Movie List
