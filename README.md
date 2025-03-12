@@ -30,7 +30,7 @@ The following are the implementation details of the flutter app. The main change
 
 10) A toggle button on the list screen to change grid items from all movies to favorite and  vice versa is implemented.
 
-11) API key details are in assets/.env file.
+11) API key details are in assets/.env file. Use you own api_key. This api_key is invalid.
 
 
 The following are the screenshots of the app:
