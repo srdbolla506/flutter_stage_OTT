@@ -1,5 +1,4 @@
 # flutter_stage_OTT
-Technical Assessment 
 
 The following are the implementation details of the flutter app. The main changes are in /lib folder
 
